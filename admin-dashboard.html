@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JUNKDROP Admin Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      margin: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #006699;
+    }
+    #logoutBtn {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      float: right;
+      cursor: pointer;
+    }
+    section {
+      background: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+      word-break: break-word;
+    }
+    th {
+      background: #006699;
+      color: white;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .approveBtn {
+      background: #28a745;
+      color: white;
+    }
+    .rejectBtn {
+      background: #dc3545;
+      color: white;
+    }
+    .loading {
+      font-style: italic;
+      color: gray;
+      margin-top: 5px;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Admin Dashboard</h1>
+  <button id="logoutBtn">Logout</button>  <section>
+    <h2>Deposit Requests</h2>
+    <div id="loadingDeposits" class="loading">Loading...</div>
+    <table id="depositsTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Amount</th>
+          <th>Tx Hash</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="depositsBody"></tbody>
+    </table>
+  </section>  <section>
+    <h2>Buy Orders</h2>
+    <div id="loadingOrders" class="loading">Loading...</div>
+    <table id="ordersTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Quantity</th>
+          <th>Total Price</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody"></tbody>
+    </table>
+  </section>  <section>
+    <h2>Seller Applications</h2>
+    <div id="loadingApplications" class="loading">Loading...</div>
+    <table id="applicationsTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Name</th>
+          <th>Country</th>
+          <th>Contact</th>
+          <th>Why Join</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="applicationsBody"></tbody>
+    </table>
+  </section>  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbqW6QePM7rw4qprDnqWYsVBJ6V7Mym0E",
+      authDomain: "junkidrop.firebaseapp.com",
+      projectId: "junkidrop"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const adminUID = "gRdZaqJC3GRKdoeOTqZ6L3w3NGw2";
+
+    document.getElementById("logoutBtn").onclick = () => {
+      auth.signOut().then(() => window.location.href = "index.html");
+    };
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return;
+      if (user.uid !== adminUID) {
+        window.location.href = "index.html";
+      } else {
+        loadDepositRequests();
+        loadBuyOrders();
+        loadSellerApplications();
+      }
+    });
+
+    function loadDepositRequests() {
+      const loading = document.getElementById("loadingDeposits");
+      const table = document.getElementById("depositsTable");
+      const body = document.getElementById("depositsBody");
+
+      db.collection("Depositrequest").where("status", "==", "pending")
+      .onSnapshot(snapshot => {
+        body.innerHTML = "";
+        if (snapshot.empty) {
+          body.innerHTML = "<tr><td colspan='5'>No pending deposits.</td></tr>";
+        } else {
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${data.userId}</td>
+              <td>$${parseFloat(data.amount).toFixed(2)}</td>
+              <td>${data.txHash}</td>
+              <td>${data.status}</td>
+              <td>
+                <button class="approveBtn" onclick="approveDeposit('${doc.id}', ${data.amount}, '${data.userId}')">Approve</button>
+                <button class="rejectBtn" onclick="rejectDeposit('${doc.id}')">Reject</button>
+              </td>`;
+            body.appendChild(row);
+          });
+        }
+        loading.style.display = "none";
+        table.style.display = "table";
+      });
+    }
+
+    function approveDeposit(depositId, amount, userId) {
+      if (!confirm(`Approve deposit of $${amount.toFixed(2)} for user ${userId}?`)) return;
+      const buyerRef = db.collection("Buyers").doc(userId);
+      const depositRef = db.collection("Depositrequest").doc(depositId);
+
+      db.runTransaction(async tx => {
+        const docSnap = await tx.get(buyerRef);
+        const currentBalance = docSnap.exists ? docSnap.data().balance || 0 : 0;
+        tx.set(buyerRef, { balance: currentBalance + amount }, { merge: true });
+        tx.update(depositRef, { status: "approved" });
+      })
+      .then(() => alert("Deposit approved and balance updated."))
+      .catch(err => alert("Error: " + err.message));
+    }
+
+    function rejectDeposit(depositId) {
+      if (!confirm("Reject this deposit request?")) return;
+      db.collection("Depositrequest").doc(depositId).update({ status: "rejected" })
+        .then(() => alert("Deposit request rejected."))
+        .catch(err => alert("Error: " + err.message));
+    }
+
+    function loadBuyOrders() {
+      const loading = document.getElementById("loadingOrders");
+      const table = document.getElementById("ordersTable");
+      const body = document.getElementById("ordersBody");
+
+      db.collection("Buyorder").where("status", "==", "pending")
+      .onSnapshot(snapshot => {
+        body.innerHTML = "";
+        if (snapshot.empty) {
+          body.innerHTML = "<tr><td colspan='5'>No pending buy orders.</td></tr>";
+        } else {
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${data.userId}</td>
+              <td>${data.quantity}</td>
+              <td>$${parseFloat(data.totalPrice).toFixed(2)}</td>
+              <td>${data.status}</td>
+              <td>
+                <button class="approveBtn" onclick="approveOrder('${doc.id}')">Approve</button>
+                <button class="rejectBtn" onclick="rejectOrder('${doc.id}')">Reject</button>
+              </td>`;
+            body.appendChild(row);
+          });
+        }
+        loading.style.display = "none";
+        table.style.display = "table";
+      });
+    }
+
+    function approveOrder(orderId) {
+      if (!confirm("Approve this order?")) return;
+      db.collection("Buyorder").doc(orderId).update({ status: "approved" })
+        .then(() => alert("Order approved."))
+        .catch(err => alert("Error: " + err.message));
+    }
+
+    function rejectOrder(orderId) {
+      if (!confirm("Reject this order?")) return;
+      db.collection("Buyorder").doc(orderId).update({ status: "rejected" })
+        .then(() => alert("Order rejected."))
+        .catch(err => alert("Error: " + err.message));
+    }
+
+    function loadSellerApplications() {
+      const loading = document.getElementById("loadingApplications");
+      const table = document.getElementById("applicationsTable");
+      const body = document.getElementById("applicationsBody");
+
+      db.collection("sellerApplications").where("status", "==", "pending")
+      .onSnapshot(snapshot => {
+        body.innerHTML = "";
+        if (snapshot.empty) {
+          body.innerHTML = "<tr><td colspan='6'>No pending applications.</td></tr>";
+        } else {
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const appData = data.applicationData || {};
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${data.userId}</td>
+              <td>${appData.Name || ''}</td>
+              <td>${appData.Country || ''}</td>
+              <td>${appData.contactEmail || ''}</td>
+              <td>${appData["Why do you want to join us"] || ''}</td>
+              <td>${data.status}</td>`;
+            body.appendChild(row);
+          });
+        }
+        loading.style.display = "none";
+        table.style.display = "table";
+      });
+    }
+  </script></body>
+</html>
