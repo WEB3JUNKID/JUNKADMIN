@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -77,7 +78,9 @@
 </head>
 <body>
   <h1>Admin Dashboard</h1>
-  <button id="logoutBtn">Logout</button>  <section>
+  <button id="logoutBtn">Logout</button>
+
+  <section>
     <h2>Deposit Requests</h2>
     <div id="loadingDeposits" class="loading">Loading...</div>
     <table id="depositsTable" style="display:none;">
@@ -92,7 +95,9 @@
       </thead>
       <tbody id="depositsBody"></tbody>
     </table>
-  </section>  <section>
+  </section>
+
+  <section>
     <h2>Buy Orders</h2>
     <div id="loadingOrders" class="loading">Loading...</div>
     <table id="ordersTable" style="display:none;">
@@ -107,7 +112,9 @@
       </thead>
       <tbody id="ordersBody"></tbody>
     </table>
-  </section>  <section>
+  </section>
+
+  <section>
     <h2>Seller Applications</h2>
     <div id="loadingApplications" class="loading">Loading...</div>
     <table id="applicationsTable" style="display:none;">
@@ -123,7 +130,9 @@
       </thead>
       <tbody id="applicationsBody"></tbody>
     </table>
-  </section>  <script>
+  </section>
+
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCbqW6QePM7rw4qprDnqWYsVBJ6V7Mym0E",
       authDomain: "junkidrop.firebaseapp.com",
@@ -132,15 +141,13 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const adminUID = "YUcNk6jJBLQWCbVph94FdFFStOE2";
 
     document.getElementById("logoutBtn").onclick = () => {
       auth.signOut().then(() => window.location.href = "index.html");
     };
 
     auth.onAuthStateChanged(user => {
-      if (!user) return;
-      if (user.uid !== adminUID) {
+      if (!user) {
         window.location.href = "index.html";
       } else {
         loadDepositRequests();
@@ -276,6 +283,6 @@
         table.style.display = "table";
       });
     }
-  </script></body>
+  </script>
+</body>
 </html>
-
