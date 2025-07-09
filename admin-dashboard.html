@@ -152,7 +152,7 @@
       } else {
         loadDepositRequests();
         loadBuyOrders();
-        loadSellerApplications();
+        loadSellerApplication();
       }
     });
 
@@ -254,12 +254,12 @@
         .catch(err => alert("Error: " + err.message));
     }
 
-    function loadSellerApplications() {
+    function loadSellerApplication() {
       const loading = document.getElementById("loadingApplications");
       const table = document.getElementById("applicationsTable");
       const body = document.getElementById("applicationsBody");
 
-      db.collection("sellerApplications").where("status", "==", "pending")
+      db.collection("sellerApplication").where("status", "==", "pending")
       .onSnapshot(snapshot => {
         body.innerHTML = "";
         if (snapshot.empty) {
@@ -271,10 +271,10 @@
             const row = document.createElement("tr");
             row.innerHTML = `
               <td>${data.userId}</td>
-              <td>${appData.Name || ''}</td>
-              <td>${appData.Country || ''}</td>
-              <td>${appData.contactEmail || ''}</td>
-              <td>${appData["Why do you want to join us"] || ''}</td>
+              <td>${appData.telegram || ''}</td>
+              <td>${appData.hours || ''}</td>
+              <td>${appData.timestamp || ''}</td>
+              
               <td>${data.status}</td>`;
             body.appendChild(row);
           });
