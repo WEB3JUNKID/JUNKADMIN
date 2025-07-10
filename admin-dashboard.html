@@ -122,10 +122,10 @@
         <tr>
           <th>User ID</th>
           <th>Name</th>
-          <th>Country</th>
-          <th>Contact</th>
-          <th>Why Join</th>
+          <th>Telegram</th>
+          <th>Available Hours</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody id="applicationsBody"></tbody>
@@ -152,7 +152,7 @@
       } else {
         loadDepositRequests();
         loadBuyOrders();
-        loadSellerApplication();
+        loadSellerApplications();
       }
     });
 
@@ -254,7 +254,7 @@
         .catch(err => alert("Error: " + err.message));
     }
 
-    function loadSellerApplication() {
+    function loadSellerApplications() {
       const loading = document.getElementById("loadingApplications");
       const table = document.getElementById("applicationsTable");
       const body = document.getElementById("applicationsBody");
@@ -267,21 +267,38 @@
         } else {
           snapshot.forEach(doc => {
             const data = doc.data();
-            const appData = data.applicationData || {};
             const row = document.createElement("tr");
             row.innerHTML = `
-              <td>${data.userId}</td>
-              <td>${appData.telegram || ''}</td>
-              <td>${appData.hours || ''}</td>
-              <td>${appData.timestamp || ''}</td>
-              
-              <td>${data.status}</td>`;
+              <td>${data.userId || ''}</td>
+              <td>${data.nickname || ''}</td>
+              <td>${data.telegram || ''}</td>
+              <td>${data.hours !== undefined ? data.hours : ''}</td>
+              <td>${data.status || ''}</td>
+              <td>
+                <button class="approveBtn" onclick="approveApplication('${doc.id}')">Approve</button>
+                <button class="rejectBtn" onclick="rejectApplication('${doc.id}')">Reject</button>
+              </td>
+            `;
             body.appendChild(row);
           });
         }
         loading.style.display = "none";
         table.style.display = "table";
       });
+    }
+
+    function approveApplication(appId) {
+      if (!confirm("Approve this seller application?")) return;
+      db.collection("sellerApplication").doc(appId).update({ status: "approved" })
+        .then(() => alert("Seller application approved."))
+        .catch(err => alert("Error: " + err.message));
+    }
+
+    function rejectApplication(appId) {
+      if (!confirm("Reject this seller application?")) return;
+      db.collection("sellerApplication").doc(appId).update({ status: "rejected" })
+        .then(() => alert("Seller application rejected."))
+        .catch(err => alert("Error: " + err.message));
     }
   </script>
 </body>
