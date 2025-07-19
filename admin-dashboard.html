@@ -1,305 +1,408 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JUNKDROP Admin Dashboard</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      margin: 20px;
-      color: #333;
-    }
-    h1 {
-      color: #006699;
-    }
-    #logoutBtn {
-      background: #ff4d4d;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      float: right;
-      cursor: pointer;
-    }
-    section {
-      background: #fff;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    h2 {
-      color: #333;
-      margin-bottom: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ddd;
-      text-align: left;
-      word-break: break-word;
-    }
-    th {
-      background: #006699;
-      color: white;
-    }
-    button {
-      padding: 5px 10px;
-      margin: 2px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .approveBtn {
-      background: #28a745;
-      color: white;
-    }
-    .rejectBtn {
-      background: #dc3545;
-      color: white;
-    }
-    .loading {
-      font-style: italic;
-      color: gray;
-      margin-top: 5px;
-    }
-  </style>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <h1>Admin Dashboard</h1>
-  <button id="logoutBtn">Logout</button>
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
+  <title>JUNKDROP Admin Dashboard</title>  
+  <style>  
+    body { font-family: Arial, sans-serif; background: #f0f8ff; margin: 20px; color: #333; }  
+    h1 { color: #006699; }  
+    #logoutBtn { background: #ff4d4d; color: white; border: none; padding: 8px 16px; border-radius: 5px; float: right; cursor: pointer; }  
+    section { background: #fff; padding: 15px; margin-top: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }  
+    h2 { color: #333; margin-bottom: 10px; }  
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }  
+    th, td { padding: 8px; border: 1px solid #ddd; text-align: left; word-break: break-word; }  
+    th { background: #006699; color: white; }  
+    button { padding: 5px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }  
+    .approveBtn { background: #28a745; color: white; }  
+    .rejectBtn { background: #dc3545; color: white; }  
+    .loading { font-style: italic; color: gray; margin-top: 5px; }  
+    a.proof-link { color: #006699; text-decoration: underline; cursor: pointer; font-size: 12px; }  
+  </style>  
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>  
+</head>  
+<body>  
+  <h1>Admin Dashboard</h1>  
+  <button id="logoutBtn">Logout</button>  
 
-  <section>
-    <h2>Deposit Requests</h2>
-    <div id="loadingDeposits" class="loading">Loading...</div>
-    <table id="depositsTable" style="display:none;">
-      <thead>
-        <tr>
-          <th>User ID</th>
-          <th>Amount</th>
-          <th>Tx Hash</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="depositsBody"></tbody>
-    </table>
-  </section>
+  <section>  
+    <h2>Deposit Requests</h2>  
+    <div id="loadingDeposits" class="loading">Loading...</div>  
+    <table id="depositsTable" style="display:none;">  
+      <thead>  
+        <tr>  
+          <th>User ID</th>  
+          <th>Amount</th>  
+          <th>Tx Hash</th>  
+          <th>Status</th>  
+          <th>Actions</th>  
+        </tr>  
+      </thead>  
+      <tbody id="depositsBody"></tbody>  
+    </table>  
+  </section>  
 
-  <section>
-    <h2>Buy Orders</h2>
-    <div id="loadingOrders" class="loading">Loading...</div>
-    <table id="ordersTable" style="display:none;">
-      <thead>
-        <tr>
-          <th>User ID</th>
-          <th>Quantity</th>
-          <th>Total Price</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="ordersBody"></tbody>
-    </table>
-  </section>
+  <section>  
+    <h2>Buy Orders</h2>  
+    <div id="loadingOrders" class="loading">Loading...</div>  
+    <table id="ordersTable" style="display:none;">  
+      <thead>  
+        <tr>  
+          <th>User ID</th>  
+          <th>Quantity</th>  
+          <th>Total Price</th>  
+          <th>Status</th>  
+          <th>Actions</th>  
+        </tr>  
+      </thead>  
+      <tbody id="ordersBody"></tbody>  
+    </table>  
+  </section>  
 
-  <section>
-    <h2>Seller Applications</h2>
-    <div id="loadingApplications" class="loading">Loading...</div>
-    <table id="applicationsTable" style="display:none;">
-      <thead>
-        <tr>
-          <th>User ID</th>
-          <th>Name</th>
-          <th>Telegram</th>
-          <th>Available Hours</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="applicationsBody"></tbody>
-    </table>
-  </section>
+  <section>  
+    <h2>Myorder Claims (In-Progress)</h2>  
+    <div id="loadingMyorderClaims" class="loading">Loading...</div>  
+    <table id="myorderClaimsTable" style="display:none;">  
+      <thead>  
+        <tr>  
+          <th>Seller ID</th>  
+          <th>Proof</th>  
+          <th>Total Claim Value</th>  
+          <th>Net Payout</th>  
+          <th>Actions</th>  
+        </tr>  
+      </thead>  
+      <tbody id="myorderClaimsBody"></tbody>  
+    </table>  
+  </section>  
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbqW6QePM7rw4qprDnqWYsVBJ6V7Mym0E",
-      authDomain: "junkidrop.firebaseapp.com",
-      projectId: "junkidrop"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  <section>  
+    <h2>Payout Requests</h2>  
+    <div id="loadingPayouts" class="loading">Loading...</div>  
+    <table id="payoutsTable" style="display:none;">  
+      <thead>  
+        <tr>  
+          <th>Seller ID</th>  
+          <th>Amount</th>  
+          <th>Wallet</th>  
+          <th>Status</th>  
+          <th>Actions</th>  
+        </tr>  
+      </thead>  
+      <tbody id="payoutsBody"></tbody>  
+    </table>  
+  </section>  
 
-    document.getElementById("logoutBtn").onclick = () => {
-      auth.signOut().then(() => window.location.href = "index.html");
-    };
+  <section>  
+    <h2>Seller Applications</h2>  
+    <div id="loadingApplications" class="loading">Loading...</div>  
+    <table id="applicationsTable" style="display:none;">  
+      <thead>  
+        <tr>  
+          <th>User ID</th>  
+          <th>Name</th>  
+          <th>Telegram</th>  
+          <th>Available Hours</th>  
+          <th>Experience (Years)</th>  
+          <th>Why Join</th>  
+          <th>Status</th>  
+          <th>Actions</th>  
+        </tr>  
+      </thead>  
+      <tbody id="applicationsBody"></tbody>  
+    </table>  
+  </section>  
 
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        loadDepositRequests();
-        loadBuyOrders();
-        loadSellerApplications();
-      }
-    });
+  <script>  
+    const firebaseConfig = {  
+      apiKey: "AIzaSyCbqW6QePM7rw4qprDnqWYsVBJ6V7Mym0E",  
+      authDomain: "junkidrop.firebaseapp.com",  
+      projectId: "junkidrop"  
+    };  
+    firebase.initializeApp(firebaseConfig);  
+    const auth = firebase.auth();  
+    const db = firebase.firestore();  
 
-    function loadDepositRequests() {
-      const loading = document.getElementById("loadingDeposits");
-      const table = document.getElementById("depositsTable");
-      const body = document.getElementById("depositsBody");
+    document.getElementById("logoutBtn").onclick = () => {  
+      auth.signOut().then(() => window.location.href = "index.html");  
+    };  
 
-      db.collection("Depositrequest").where("status", "==", "pending")
-      .onSnapshot(snapshot => {
-        body.innerHTML = "";
-        if (snapshot.empty) {
-          body.innerHTML = "<tr><td colspan='5'>No pending deposits.</td></tr>";
-        } else {
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${data.userId}</td>
-              <td>$${parseFloat(data.amount).toFixed(2)}</td>
-              <td>${data.txHash}</td>
-              <td>${data.status}</td>
-              <td>
-                <button class="approveBtn" onclick="approveDeposit('${doc.id}', ${data.amount}, '${data.userId}')">Approve</button>
-                <button class="rejectBtn" onclick="rejectDeposit('${doc.id}')">Reject</button>
-              </td>`;
-            body.appendChild(row);
-          });
-        }
-        loading.style.display = "none";
-        table.style.display = "table";
-      });
-    }
+    auth.onAuthStateChanged(user => {  
+      if (!user) {  
+        window.location.href = "index.html";  
+      } else {  
+        loadDepositRequests();  
+        loadBuyOrders();  
+        loadSellerApplications();  
+        loadMyorderClaims();  
+        loadPayoutRequests();  
+      }  
+    });  
 
-    function approveDeposit(depositId, amount, userId) {
-      if (!confirm(`Approve deposit of $${amount.toFixed(2)} for user ${userId}?`)) return;
-      const buyerRef = db.collection("Buyers").doc(userId);
-      const depositRef = db.collection("Depositrequest").doc(depositId);
+    // Deposit Requests  
+    function loadDepositRequests() {  
+      const loading = document.getElementById("loadingDeposits");  
+      const table = document.getElementById("depositsTable");  
+      const body = document.getElementById("depositsBody");  
 
-      db.runTransaction(async tx => {
-        const docSnap = await tx.get(buyerRef);
-        const currentBalance = docSnap.exists ? docSnap.data().balance || 0 : 0;
-        tx.set(buyerRef, { balance: currentBalance + amount }, { merge: true });
-        tx.update(depositRef, { status: "approved" });
-      })
-      .then(() => alert("Deposit approved and balance updated."))
-      .catch(err => alert("Error: " + err.message));
-    }
+      db.collection("Depositrequest").where("status", "==", "pending")  
+      .onSnapshot(snapshot => {  
+        body.innerHTML = "";  
+        if (snapshot.empty) {  
+          body.innerHTML = "<tr><td colspan='5'>No pending deposits.</td></tr>";  
+        } else {  
+          snapshot.forEach(doc => {  
+            const data = doc.data();  
+            const row = document.createElement("tr");  
+            row.innerHTML = `  
+              <td>${data.userId}</td>  
+              <td>$${parseFloat(data.amount).toFixed(2)}</td>  
+              <td>${data.txHash}</td>  
+              <td>${data.status}</td>  
+              <td>  
+                <button class="approveBtn" onclick="approveDeposit('${doc.id}', ${data.amount}, '${data.userId}')">Approve</button>  
+                <button class="rejectBtn" onclick="rejectDeposit('${doc.id}')">Reject</button>  
+              </td>`;  
+            body.appendChild(row);  
+          });  
+        }  
+        loading.style.display = "none";  
+        table.style.display = "table";  
+      });  
+    }  
+    function approveDeposit(depositId, amount, userId) {  
+      if (!confirm(`Approve deposit of $${amount.toFixed(2)} for user ${userId}?`)) return;  
+      const buyerRef = db.collection("Buyers").doc(userId);  
+      const depositRef = db.collection("Depositrequest").doc(depositId);  
 
-    function rejectDeposit(depositId) {
-      if (!confirm("Reject this deposit request?")) return;
-      db.collection("Depositrequest").doc(depositId).update({ status: "rejected" })
-        .then(() => alert("Deposit request rejected."))
-        .catch(err => alert("Error: " + err.message));
-    }
+      db.runTransaction(async tx => {  
+        const docSnap = await tx.get(buyerRef);  
+        const currentBalance = docSnap.exists ? docSnap.data().balance || 0 : 0;  
+        tx.set(buyerRef, { balance: currentBalance + amount }, { merge: true });  
+        tx.update(depositRef, { status: "approved" });  
+      })  
+      .then(() => alert("Deposit approved and balance updated."))  
+      .catch(err => alert("Error: " + err.message));  
+    }  
+    function rejectDeposit(depositId) {  
+      if (!confirm("Reject this deposit request?")) return;  
+      db.collection("Depositrequest").doc(depositId).update({ status: "rejected" })  
+        .then(() => alert("Deposit request rejected."))  
+        .catch(err => alert("Error: " + err.message));  
+    }  
 
-    function loadBuyOrders() {
-      const loading = document.getElementById("loadingOrders");
-      const table = document.getElementById("ordersTable");
-      const body = document.getElementById("ordersBody");
+    // Buy Orders  
+    function loadBuyOrders() {  
+      const loading = document.getElementById("loadingOrders");  
+      const table = document.getElementById("ordersTable");  
+      const body = document.getElementById("ordersBody");  
 
-      db.collection("Buyorder").where("status", "==", "pending")
-      .onSnapshot(snapshot => {
-        body.innerHTML = "";
-        if (snapshot.empty) {
-          body.innerHTML = "<tr><td colspan='5'>No pending buy orders.</td></tr>";
-        } else {
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${data.userId}</td>
-              <td>${data.quantity}</td>
-              <td>$${parseFloat(data.totalPrice).toFixed(2)}</td>
-              <td>${data.status}</td>
-              <td>
-                <button class="approveBtn" onclick="approveOrder('${doc.id}')">Approve</button>
-                <button class="rejectBtn" onclick="rejectOrder('${doc.id}')">Reject</button>
-              </td>`;
-            body.appendChild(row);
-          });
-        }
-        loading.style.display = "none";
-        table.style.display = "table";
-      });
-    }
+      db.collection("Buyorder").where("status", "==", "pending")  
+      .onSnapshot(snapshot => {  
+        body.innerHTML = "";  
+        if (snapshot.empty) {  
+          body.innerHTML = "<tr><td colspan='5'>No pending buy orders.</td></tr>";  
+        } else {  
+          snapshot.forEach(doc => {  
+            const data = doc.data();  
+            const row = document.createElement("tr");  
+            row.innerHTML = `  
+              <td>${data.userId}</td>  
+              <td>${data.quantity}</td>  
+              <td>$${parseFloat(data.totalPrice).toFixed(2)}</td>  
+              <td>${data.status}</td>  
+              <td>  
+                <button class="approveBtn" onclick="approveOrder('${doc.id}')">Approve</button>  
+                <button class="rejectBtn" onclick="rejectOrder('${doc.id}')">Reject</button>  
+              </td>`;  
+            body.appendChild(row);  
+          });  
+        }  
+        loading.style.display = "none";  
+        table.style.display = "table";  
+      });  
+    }  
+    function approveOrder(orderId) {  
+      if (!confirm("Approve this order?")) return;  
+      db.collection("Buyorder").doc(orderId).update({ status: "approved" })  
+        .then(() => alert("Order approved."))  
+        .catch(err => alert("Error: " + err.message));  
+    }  
+    function rejectOrder(orderId) {  
+      if (!confirm("Reject this order?")) return;  
+      db.collection("Buyorder").doc(orderId).update({ status: "rejected" })  
+        .then(() => alert("Order rejected."))  
+        .catch(err => alert("Error: " + err.message));  
+    }  
 
-    function approveOrder(orderId) {
-      if (!confirm("Approve this order?")) return;
-      db.collection("Buyorder").doc(orderId).update({ status: "approved" })
-        .then(() => alert("Order approved."))
-        .catch(err => alert("Error: " + err.message));
-    }
+    // Seller Applications  
+    function loadSellerApplications() {  
+      const loading = document.getElementById("loadingApplications");  
+      const table = document.getElementById("applicationsTable");  
+      const body = document.getElementById("applicationsBody");  
 
-    function rejectOrder(orderId) {
-      if (!confirm("Reject this order?")) return;
-      db.collection("Buyorder").doc(orderId).update({ status: "rejected" })
-        .then(() => alert("Order rejected."))
-        .catch(err => alert("Error: " + err.message));
-    }
+      db.collection("sellerApplication").where("status", "==", "pending")  
+      .onSnapshot(snapshot => {  
+        body.innerHTML = "";  
+        if (snapshot.empty) {  
+          body.innerHTML = "<tr><td colspan='8'>No pending applications.</td></tr>";  
+        } else {  
+          snapshot.forEach(doc => {  
+            const data = doc.data();  
+            const row = document.createElement("tr");  
+            row.innerHTML = `  
+              <td>${data.userId || ''}</td>  
+              <td>${data.name || ''}</td>  
+              <td>${data.telegram || ''}</td>  
+              <td>${data.hours !== undefined ? data.hours : ''}</td>  
+              <td>${data.experience !== undefined ? data.experience : ''}</td>  
+              <td>${data.whyJoin || ''}</td>  
+              <td>${data.status || ''}</td>  
+              <td>  
+                <button class="approveBtn" onclick="approveApplication('${doc.id}')">Approve</button>  
+                <button class="rejectBtn" onclick="rejectApplication('${doc.id}')">Reject</button>  
+              </td>`;  
+            body.appendChild(row);  
+          });  
+        }  
+        loading.style.display = "none";  
+        table.style.display = "table";  
+      });  
+    }  
+    function approveApplication(appId) {  
+      if (!confirm("Approve this seller application?")) return;  
+      db.collection("sellerApplication").doc(appId).update({ status: "approved" })  
+        .then(() => alert("Seller application approved."))  
+        .catch(err => alert("Error: " + err.message));  
+    }  
+    function rejectApplication(appId) {  
+      if (!confirm("Reject this seller application?")) return;  
+      db.collection("sellerApplication").doc(appId).update({ status: "rejected" })  
+        .then(() => alert("Seller application rejected."))  
+        .catch(err => alert("Error: " + err.message));  
+    }  
 
-    function loadSellerApplications() {
-      const loading = document.getElementById("loadingApplications");
-      const table = document.getElementById("applicationsTable");
-      const body = document.getElementById("applicationsBody");
+    // Myorder Claims (pending)  
+    function loadMyorderClaims() {  
+      const loading = document.getElementById("loadingMyorderClaims");  
+      const table = document.getElementById("myorderClaimsTable");  
+      const body = document.getElementById("myorderClaimsBody");  
 
-      db.collection("sellerApplication").where("status", "==", "pending")
-      .onSnapshot(snapshot => {
-        body.innerHTML = "";
-        if (snapshot.empty) {
-          body.innerHTML = "<tr><td colspan='6'>No pending applications.</td></tr>";
-        } else {
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${data.userId || ''}</td>
-              <td>${data.nickname || ''}</td>
-              <td>${data.telegram || ''}</td>
-              <td>${data.hours !== undefined ? data.hours : ''}</td>
-              <td>${data.status || ''}</td>
-              <td>
-                <button class="approveBtn" onclick="approveApplication('${doc.id}')">Approve</button>
-                <button class="rejectBtn" onclick="rejectApplication('${doc.id}')">Reject</button>
-              </td>
-            `;
-            body.appendChild(row);
-          });
-        }
-        loading.style.display = "none";
-        table.style.display = "table";
-      });
-    }
+      db.collection("myorderClaims").where("status", "==", "pending")  
+      .onSnapshot(snapshot => {  
+        body.innerHTML = "";  
+        if (snapshot.empty) {  
+          body.innerHTML = "<tr><td colspan='5'>No pending claims.</td></tr>";  
+        } else {  
+          snapshot.forEach(doc => {  
+            const data = doc.data();  
+            const proofLink = data.proof
+  ? `<a href="${data.proof}" target="_blank" style="color: #3b82f6;">${data.proof}</a>`
+  : "No proof";
 
-    function approveApplication(appId) {
-      if (!confirm("Approve this seller application?")) return;
-      db.collection("sellerApplication").doc(appId).update({ status: "approved" })
-        .then(() => alert("Seller application approved."))
-        .catch(err => alert("Error: " + err.message));
-    }
+            const row = document.createElement("tr");  
+            row.innerHTML = `  
+              <td>${data.sellerId || ''}</td>  
+              <td>${proofLink}</td>  
+              <td>$${parseFloat(data.totalClaimValue || 0).toFixed(2)}</td>  
+              <td>$${parseFloat(data.netPayout || 0).toFixed(2)}</td>  
+              <td>  
+                <button class="approveBtn" onclick="approveMyorderClaim('${doc.id}', ${data.netPayout}, '${data.sellerId}')">Approve</button>  
+                <button class="rejectBtn" onclick="rejectMyorderClaim('${doc.id}')">Reject</button>  
+              </td>`;  
+            body.appendChild(row);  
+          });  
+        }  
+        loading.style.display = "none";  
+        table.style.display = "table";  
+      });  
+    }  
 
-    function rejectApplication(appId) {
-      if (!confirm("Reject this seller application?")) return;
-      db.collection("sellerApplication").doc(appId).update({ status: "rejected" })
-        .then(() => alert("Seller application rejected."))
-        .catch(err => alert("Error: " + err.message));
-    }
-  </script>
-</body>
+    async function approveMyorderClaim(claimId, netPayout, sellerId) {  
+      if (!confirm(`Approve this claim and credit $${netPayout.toFixed(2)} to seller?`)) return;  
+      const sellerRef = db.collection("Sellers").doc(sellerId);  
+      const claimRef = db.collection("myorderClaims").doc(claimId);  
+
+      try {  
+        await db.runTransaction(async tx => {  
+          const sellerDoc = await tx.get(sellerRef);  
+          const currentBalance = sellerDoc.exists ? sellerDoc.data().balance || 0 : 0;  
+          tx.set(sellerRef, { balance: currentBalance + netPayout }, { merge: true });  
+          tx.update(claimRef, { status: "approved" });  
+        });  
+        alert("Claim approved and seller balance updated.");  
+      } catch (err) {  
+        alert("Error: " + err.message);  
+      }  
+    }  
+
+    function rejectMyorderClaim(claimId) {  
+      if (!confirm("Reject this claim?")) return;  
+      db.collection("myorderClaims").doc(claimId).update({ status: "rejected" })  
+        .then(() => alert("Claim rejected."))  
+        .catch(err => alert("Error: " + err.message));  
+    }  
+
+    // Payout Requests  
+    function loadPayoutRequests() {  
+      const loading = document.getElementById("loadingPayouts");  
+      const table = document.getElementById("payoutsTable");  
+      const body = document.getElementById("payoutsBody");  
+
+      db.collection("payoutRequest").where("status", "==", "pending")  
+      .onSnapshot(snapshot => {  
+        body.innerHTML = "";  
+        if (snapshot.empty) {  
+          body.innerHTML = "<tr><td colspan='5'>No pending payout requests.</td></tr>";  
+        } else {  
+          snapshot.forEach(doc => {  
+            const data = doc.data();  
+            const row = document.createElement("tr");  
+            row.innerHTML = `  
+              <td>${data.sellerId || ''}</td>  
+              <td>$${parseFloat(data.amount || 0).toFixed(2)}</td>  
+              <td>${data.wallet || ''}</td>  
+              <td>${data.status || ''}</td>  
+              <td>  
+                <button class="approveBtn" onclick="approvePayout('${doc.id}', '${data.sellerId}', ${data.amount})">Approve</button>  
+                <button class="rejectBtn" onclick="rejectPayout('${doc.id}')">Reject</button>  
+              </td>`;  
+            body.appendChild(row);  
+          });  
+        }  
+        loading.style.display = "none";  
+        table.style.display = "table";  
+      });  
+    }  
+
+    async function approvePayout(payoutId, sellerId, amount) {  
+      if (!confirm(`Approve payout of $${amount.toFixed(2)} to seller ${sellerId}?`)) return;  
+      const sellerRef = db.collection("Sellers").doc(sellerId);  
+      const payoutRef = db.collection("payoutRequest").doc(payoutId);  
+
+      try {  
+        await db.runTransaction(async tx => {  
+          const sellerDoc = await tx.get(sellerRef);  
+          const currentBalance = sellerDoc.exists ? sellerDoc.data().balance || 0 : 0;  
+          if (currentBalance < amount) throw new Error("Seller balance insufficient for payout.");  
+          tx.set(sellerRef, { balance: currentBalance - amount }, { merge: true });  
+          tx.update(payoutRef, { status: "approved" });  
+        });  
+        alert("Payout approved and seller balance updated.");  
+      } catch (err) {  
+        alert("Error: " + err.message);  
+      }  
+    }  
+
+    function rejectPayout(payoutId) {  
+      if (!confirm("Reject this payout request?")) return;  
+      db.collection("payoutRequest").doc(payoutId).update({ status: "rejected" })  
+        .then(() => alert("Payout rejected."))  
+        .catch(err => alert("Error: " + err.message));  
+    }  
+
+  </script>  
+</body>  
 </html>
